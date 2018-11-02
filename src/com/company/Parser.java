@@ -9,7 +9,6 @@ public class Parser {
     private Token tok; // the current token
     private SymbolTable symbolTable;
     private Token variable; // temp variable for symbols
-    // private int scope;
 
     private void scan() {
         tok = scanner.scan();
@@ -129,8 +128,6 @@ public class Parser {
         }
         mustbe(TK.ENDIF);
     }
-
-
 
     private void ref_id() {
         int scope = -1;
