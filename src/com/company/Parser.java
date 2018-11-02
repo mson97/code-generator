@@ -9,6 +9,8 @@ public class Parser {
     private Token tok; // the current token
     private SymbolTable symbolTable;
     private Token variable; // temp variable for symbols
+    private Translator t = new Translator();
+
 
     private void scan() {
         tok = scanner.scan();
@@ -20,9 +22,11 @@ public class Parser {
         this.scanner = scanner;
         symbolTable = new SymbolTable(); // initialize empty symbol table
         scan();
+        t.prog_start();
         program();
         if (tok.kind != TK.EOF)
             parse_error("junk after logical end of program");
+        t.prog_end();
         symbolTable = null;
     }
 
