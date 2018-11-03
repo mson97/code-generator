@@ -34,12 +34,17 @@ public class SymbolTable {
             // ignore redeclaration
         } else {
             table.elementAt(curr_scope).add(id.string);
+            System.out.print("int x_" + id.string);
+            if (curr_scope != 0){
+                System.out.print("_" + curr_scope);
+            }
+            System.out.println(";");
         }
     }
 
     // recursively checking symbol table for variable (inside out)
     public void assign(Token id) {
-        if (!find(id)) {
+        if (find(id) == -1) {
             symbol_error(id);
         }
     }
@@ -47,17 +52,24 @@ public class SymbolTable {
     // check symbol table for variable when (possibly) given scope
     public boolean assign(Token id, Scope type, int scope) {
         //no scope was given, check recursively
+        int nearest_scope;
         if (type == Scope.NONE) {
-            if (!find(id)) {
+            nearest_scope = find(id);
+            if (nearest_scope == -1) {
                 symbol_error(id);
                 return false;
+            } else {
+                System.out.print("x_" + id.string);
+                if (nearest_scope != 0) {
+                    System.out.print("_" + nearest_scope);
+                }
+                return true;
             }
         }
         // scope was given, check according to type of scope
         else {
-            return locate(id, type, scope);
+            return (locate(id, type, scope) );
         }
-        return false;
     }
 
     private boolean locate(Token id, Scope type, int scope) {
@@ -102,15 +114,15 @@ public class SymbolTable {
         System.exit(1);
     }
 
-    private boolean find(Token id) {
+    private int find(Token id) {
         return _find(id, curr_scope);
     }
 
-    private boolean _find(Token id, int scope) {
+    private int _find(Token id, int scope) {
         if (table.elementAt(scope).contains(id.string)) {
-            return true;
+            return scope;
         } else if (scope <= 0) {
-            return false;
+            return -1;
         } else {
             --scope;
             return _find(id, scope);

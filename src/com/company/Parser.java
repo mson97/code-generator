@@ -22,16 +22,18 @@ public class Parser {
         this.scanner = scanner;
         symbolTable = new SymbolTable(); // initialize empty symbol table
         scan();
-        t.prog_start();
         program();
         if (tok.kind != TK.EOF)
             parse_error("junk after logical end of program");
-        t.prog_end();
         symbolTable = null;
     }
 
     private void program() {
+        System.out.println("public class My_e2j{");
+        System.out.println("public static void main(String[] args){" );
         block();
+        System.out.println("}");
+        System.out.println("}");
     }
 
     private void block() {
@@ -56,6 +58,7 @@ public class Parser {
         mustbe(TK.ID);
         // add variable to symbol table
         symbolTable.declare(variable);
+        // System.out.println("int x_" + variable.string + ";");
         while (is(TK.COMMA)) {
             scan();
             // save copy
@@ -82,6 +85,7 @@ public class Parser {
             assignment();
         } else if (is(TK.PRINT)) {
             print();
+            System.out.println(");");
         } else if (is(TK.DO)) {
             e_do();
         } else if (is(TK.IF)) {
@@ -101,24 +105,32 @@ public class Parser {
         // check if variable is in symbol table
         symbolTable.assign(variable);
         mustbe(TK.ASSIGN);
+        // System.out.print("x_" + variable.string + " = "); // continue printing expr on same line
+        System.out.print(" = ");
         expr();
+        System.out.println(";");
     }
 
     private void print() {
         mustbe(TK.PRINT);
+        System.out.print("System.out.println("); // continue printing expr on same line
         expr();
     }
 
     private void e_do() {
         mustbe(TK.DO);
+        System.out.print("while ( "); // continue printing cond on same line
         guarded_command();
         mustbe(TK.ENDDO);
+        //System.out.println("}");
     }
 
     private void e_if() {
         mustbe(TK.IF);
-        guarded_command();
+        System.out.print("if ( ");
+        guarded_command(); // continue printing cond on same line
         while (is(TK.ELSEIF)) {
+            System.out.print("else if ( "); // print else if {
             scan();
             guarded_command();
         }
@@ -126,9 +138,11 @@ public class Parser {
             scan();
             // start of nested block, enter new scope
             symbolTable.enter_scope();
+            System.out.println("else {"); // print else {
             block();
             // end of nested block, exit new scope
             symbolTable.exit_scope();
+            System.out.println("}"); // print }
         }
         mustbe(TK.ENDIF);
     }
@@ -149,12 +163,19 @@ public class Parser {
         variable = this.tok;
         mustbe(TK.ID);
         // check variable is in symbol table at scope (if given)
-        symbolTable.assign(variable, type, scope);
+        symbolTable.assign(variable,type, scope);
+        /*if (symbolTable.assign(variable, type, scope)) {
+            System.out.print("x_" + variable.string); // print variable id
+            if (scope != -1) {
+                System.out.print("_" + scope);
+            }
+        }*/
     }
 
     private void expr() {
         term();
         while (f_addop()) {
+            System.out.print(" " + tok.string + " "); // print + or -
             scan();
             term();
         }
@@ -162,17 +183,21 @@ public class Parser {
 
     private void guarded_command() {
         expr();
+        System.out.print(" <= 0 )");
         mustbe(TK.THEN);
         // start of nested block, enter new scope
         symbolTable.enter_scope();
+        System.out.println("{"); // print {
         block();
         // end of nested block, exit new scope
         symbolTable.exit_scope();
+        System.out.println("}"); // print }
     }
 
     private void term() {
         factor();
         while (f_multop()) {
+            System.out.print(" " + tok.string +  " "); // print * or /
             scan();
             factor();
         }
@@ -181,12 +206,15 @@ public class Parser {
     // check tok is in FS_(factor) = {'(', '~', id, number}
     private void factor() {
         if (is(TK.LPAREN)) {
+            System.out.println("("); // print (
             scan();
             expr();
             mustbe(TK.RPAREN);
+            System.out.print(")"); // print )
         } else if (f_rfid()) {
             ref_id();
         } else if (is(TK.NUM)) {
+            System.out.print(tok.string); // print num
             scan();
         } else {
             parse_error("Error in factor");
